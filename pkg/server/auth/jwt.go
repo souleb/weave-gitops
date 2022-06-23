@@ -19,13 +19,15 @@ type PrincipalGetter interface {
 }
 
 // JWTCookiePrincipalGetter inspects a cookie for a JWT token
-// and returns a principal object.
+// and returns a principal value.
 type JWTCookiePrincipalGetter struct {
 	log        logr.Logger
 	verifier   *oidc.IDTokenVerifier
 	cookieName string
 }
 
+// NewJWTCookiePrincipalGetter creates a new implementation of the PrincipalGetter
+// interface that can decode and verify OIDC ID tokens from a named cookie.
 func NewJWTCookiePrincipalGetter(log logr.Logger, verifier *oidc.IDTokenVerifier, cookieName string) PrincipalGetter {
 	return &JWTCookiePrincipalGetter{
 		log:        log,
@@ -45,12 +47,15 @@ func (pg *JWTCookiePrincipalGetter) Principal(r *http.Request) (*UserPrincipal, 
 
 // JWTAuthorizationHeaderPrincipalGetter inspects the Authorization
 // header (bearer token) for a JWT token and returns a principal
-// object.
+// value.
 type JWTAuthorizationHeaderPrincipalGetter struct {
 	log      logr.Logger
 	verifier *oidc.IDTokenVerifier
 }
 
+// NewJWTAuthorizationHeaderPrincipalGetter creates a new implementation of the PrincipalGetter
+// interface that can decode and verify OIDC ID tokens from the Authorization
+// header.
 func NewJWTAuthorizationHeaderPrincipalGetter(log logr.Logger, verifier *oidc.IDTokenVerifier) PrincipalGetter {
 	return &JWTAuthorizationHeaderPrincipalGetter{
 		log:      log,
@@ -58,6 +63,9 @@ func NewJWTAuthorizationHeaderPrincipalGetter(log logr.Logger, verifier *oidc.ID
 	}
 }
 
+// Principal is an implementation of the PrincipalGetter interface.
+//
+// Headers of the form Authorization: Bearer <token> are parsed as JWT tokens.
 func (pg *JWTAuthorizationHeaderPrincipalGetter) Principal(r *http.Request) (*UserPrincipal, error) {
 	pg.log.Info("attempt to read token from auth header")
 
@@ -100,12 +108,16 @@ func parseJWTToken(ctx context.Context, verifier *oidc.IDTokenVerifier, rawIDTok
 	return &UserPrincipal{ID: claims.Email, Groups: claims.Groups}, nil
 }
 
+// JWTAdminCookiePrincipalGetter is an implementation of the principal parsing
+// that can parse the generated token for the admin user.
 type JWTAdminCookiePrincipalGetter struct {
 	log        logr.Logger
 	verifier   TokenSignerVerifier
 	cookieName string
 }
 
+// NewJWTAdminCookiePrincipalGetter creates and returns a new
+// JWTAdminCookiePrincipalGetter.
 func NewJWTAdminCookiePrincipalGetter(log logr.Logger, verifier TokenSignerVerifier, cookieName string) PrincipalGetter {
 	return &JWTAdminCookiePrincipalGetter{
 		log:        log,
