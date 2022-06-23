@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/base64"
+	"fmt"
 	"net/http"
 	"net/url"
 
@@ -66,6 +67,11 @@ func Principal(ctx context.Context) *UserPrincipal {
 type UserPrincipal struct {
 	ID     string   `json:"id"`
 	Groups []string `json:"groups"`
+	Token  string   `json:"-"`
+}
+
+func (u UserPrincipal) String() string {
+	return fmt.Sprintf("id=%q groups=%v", u.ID, u.Groups)
 }
 
 // WithPrincipal sets the principal into the context.
