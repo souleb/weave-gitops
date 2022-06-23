@@ -20,14 +20,13 @@ var _ ConfigGetter = &ImpersonatingConfigGetter{}
 // principal and if it finds one, it configures the *rest.Config to impersonate
 // that principal. Otherwise it returns a copy of the base config.
 type ImpersonatingConfigGetter struct {
-	insecure bool
-	cfg      *rest.Config
+	cfg *rest.Config
 }
 
 // NewImpersonatingConfigGetter creates and returns a ConfigGetter with a known
 // config.
-func NewImpersonatingConfigGetter(cfg *rest.Config, insecure bool) *ImpersonatingConfigGetter {
-	return &ImpersonatingConfigGetter{cfg: cfg, insecure: insecure}
+func NewImpersonatingConfigGetter(cfg *rest.Config) *ImpersonatingConfigGetter {
+	return &ImpersonatingConfigGetter{cfg: cfg}
 }
 
 // Config returns a *rest.Config configured to impersonate a user or
@@ -36,15 +35,13 @@ func (r *ImpersonatingConfigGetter) Config(ctx context.Context) *rest.Config {
 	shallowCopy := *r.cfg
 
 	if p := auth.Principal(ctx); p != nil {
-		shallowCopy.Impersonate = rest.ImpersonationConfig{
-			UserName: p.ID,
-			Groups:   p.Groups,
-		}
-	}
-
-	if r.insecure {
-		shallowCopy.TLSClientConfig = rest.TLSClientConfig{
-			Insecure: r.insecure,
+		if p.Token != "" {
+			shallowCopy.BearerToken = p.Token
+		} else {
+			shallowCopy.Impersonate = rest.ImpersonationConfig{
+				UserName: p.ID,
+				Groups:   p.Groups,
+			}
 		}
 	}
 

@@ -61,7 +61,7 @@ func NewCoreConfig(log logr.Logger, cfg *rest.Config, clusterName string, cluste
 }
 
 func NewCoreServer(cfg CoreServerConfig, setters ...CoreOption) (pb.CoreServer, error) {
-	cfgGetter := kube.NewImpersonatingConfigGetter(cfg.RestCfg, false)
+	cfgGetter := kube.NewImpersonatingConfigGetter(cfg.RestCfg)
 
 	clientGetter := kube.NewDefaultClientGetter(cfgGetter, cfg.clusterName)
 

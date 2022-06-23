@@ -13,7 +13,7 @@ import (
 var _ kube.ConfigGetter = (*kube.ImpersonatingConfigGetter)(nil)
 
 func TestImpersonatingConfigGetterPrincipalInContext(t *testing.T) {
-	g := kube.NewImpersonatingConfigGetter(&rest.Config{}, false)
+	g := kube.NewImpersonatingConfigGetter(&rest.Config{})
 	ctx := auth.WithPrincipal(context.TODO(), &auth.UserPrincipal{ID: "user@example.com"})
 
 	cfg := g.Config(ctx)
@@ -28,8 +28,22 @@ func TestImpersonatingConfigGetterPrincipalInContext(t *testing.T) {
 	}
 }
 
+func TestImpersonatingConfigGetterPrincipalInContextWithToken(t *testing.T) {
+	g := kube.NewImpersonatingConfigGetter(&rest.Config{})
+	ctx := auth.WithPrincipal(context.TODO(), &auth.UserPrincipal{ID: "user@example.com", Token: "test-token"})
+
+	cfg := g.Config(ctx)
+
+	want := &rest.Config{
+		BearerToken: "test-token",
+	}
+	if diff := cmp.Diff(want, cfg); diff != "" {
+		t.Fatalf("incorrect client config:\n%s", diff)
+	}
+}
+
 func TestImpersonatingConfigGetterPrincipalInContextWithGroups(t *testing.T) {
-	g := kube.NewImpersonatingConfigGetter(&rest.Config{}, false)
+	g := kube.NewImpersonatingConfigGetter(&rest.Config{})
 	ctx := auth.WithPrincipal(context.TODO(), &auth.UserPrincipal{ID: "user@example.com", Groups: []string{"test-group"}})
 
 	cfg := g.Config(ctx)
@@ -38,40 +52,6 @@ func TestImpersonatingConfigGetterPrincipalInContextWithGroups(t *testing.T) {
 		Impersonate: rest.ImpersonationConfig{
 			UserName: "user@example.com",
 			Groups:   []string{"test-group"},
-		},
-	}
-	if diff := cmp.Diff(want, cfg); diff != "" {
-		t.Fatalf("incorrect client config:\n%s", diff)
-	}
-}
-
-func TestImpersonatingConfigGetterInsecureClient(t *testing.T) {
-	g := kube.NewImpersonatingConfigGetter(&rest.Config{}, true)
-	ctx := auth.WithPrincipal(context.TODO(), &auth.UserPrincipal{ID: "user@example.com"})
-
-	cfg := g.Config(ctx)
-
-	want := &rest.Config{
-		Impersonate: rest.ImpersonationConfig{
-			UserName: "user@example.com",
-		},
-		TLSClientConfig: rest.TLSClientConfig{
-			Insecure: true,
-		},
-	}
-	if diff := cmp.Diff(want, cfg); diff != "" {
-		t.Fatalf("incorrect client config:\n%s", diff)
-	}
-}
-
-func TestImpersonatingConfigGetterNoPrincipalInContext(t *testing.T) {
-	g := kube.NewImpersonatingConfigGetter(&rest.Config{}, true)
-
-	cfg := g.Config(context.TODO())
-
-	want := &rest.Config{
-		TLSClientConfig: rest.TLSClientConfig{
-			Insecure: true,
 		},
 	}
 	if diff := cmp.Diff(want, cfg); diff != "" {
