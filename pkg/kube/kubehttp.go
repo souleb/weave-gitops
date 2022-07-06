@@ -33,13 +33,6 @@ func CreateScheme() *apiruntime.Scheme {
 	return scheme
 }
 
-const WeGOCRDName = "apps.wego.weave.works"
-const FluxNamespace = "flux-system"
-
-const (
-	WegoConfigMapName = "weave-gitops-config"
-)
-
 var (
 	//ErrWegoConfigNotFound indicates weave gitops config could not be found
 	ErrWegoConfigNotFound = errors.New("Wego Config not found")
