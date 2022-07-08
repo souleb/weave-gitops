@@ -36,6 +36,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
@@ -162,10 +163,19 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		log.V(logger.LogLevelDebug).Info("Reading OIDC configuration from alternate secret", "secretName", options.OIDCSecret)
 	}
 
+	loadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
+	configOverrides := &clientcmd.ConfigOverrides{}
+	kubeConfig := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loadingRules, configOverrides)
+
+	namespace, _, err := kubeConfig.Namespace()
+	if err != nil {
+		return fmt.Errorf("Couldn't read current namespace: %w", err)
+	}
+
 	// If OIDC auth secret is found prefer that over CLI parameters
 	var secret corev1.Secret
 	if err := rawClient.Get(cmd.Context(), client.ObjectKey{
-		Namespace: v1alpha1.DefaultNamespace,
+		Namespace: namespace,
 		Name:      options.OIDCSecret,
 	}, &secret); err == nil {
 		if options.OIDC.ClientSecret != "" && secret.Data["clientSecret"] != nil { // 'Data' is a byte array
@@ -191,7 +201,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		tsv.SetDevMode(options.DevUser)
 	}
 
-	authCfg, err := auth.NewAuthServerConfig(log, oidcConfig, rawClient, tsv)
+	authCfg, err := auth.NewAuthServerConfig(log, oidcConfig, rawClient, tsv, namespace)
 	if err != nil {
 		return err
 	}

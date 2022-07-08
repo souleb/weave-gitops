@@ -10,7 +10,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: wego-test-user-read-resources
-  namespace: flux-system
+  namespace: {{ .Release.Namespace }}
 subjects:
   - kind: User
     name: wego-admin

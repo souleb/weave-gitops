@@ -11,7 +11,6 @@ import (
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/go-logr/logr"
-	"github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/featureflags"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/oauth2"
@@ -48,6 +47,7 @@ type AuthConfig struct {
 	kubernetesClient    ctrlclient.Client
 	tokenSignerVerifier TokenSignerVerifier
 	config              OIDCConfig
+	namespace           string
 }
 
 // AuthServer interacts with an OIDC issuer to handle the OAuth2 process flow.
@@ -86,7 +86,7 @@ func NewOIDCConfigFromSecret(secret corev1.Secret) OIDCConfig {
 	return cfg
 }
 
-func NewAuthServerConfig(log logr.Logger, oidcCfg OIDCConfig, kubernetesClient ctrlclient.Client, tsv TokenSignerVerifier) (AuthConfig, error) {
+func NewAuthServerConfig(log logr.Logger, oidcCfg OIDCConfig, kubernetesClient ctrlclient.Client, tsv TokenSignerVerifier, namespace string) (AuthConfig, error) {
 	if _, err := url.Parse(oidcCfg.IssuerURL); err != nil {
 		return AuthConfig{}, fmt.Errorf("invalid issuer URL: %w", err)
 	}
@@ -101,6 +101,7 @@ func NewAuthServerConfig(log logr.Logger, oidcCfg OIDCConfig, kubernetesClient c
 		kubernetesClient:    kubernetesClient,
 		tokenSignerVerifier: tsv,
 		config:              oidcCfg,
+		namespace:           namespace,
 	}, nil
 }
 
@@ -108,8 +109,8 @@ func NewAuthServerConfig(log logr.Logger, oidcCfg OIDCConfig, kubernetesClient c
 func NewAuthServer(ctx context.Context, cfg AuthConfig) (*AuthServer, error) {
 	var secret corev1.Secret
 	err := cfg.kubernetesClient.Get(ctx, client.ObjectKey{
-		Namespace: v1alpha1.DefaultNamespace,
 		Name:      ClusterUserAuthSecretName,
+		Namespace: cfg.namespace,
 	}, &secret)
 
 	if err != nil {
@@ -308,8 +309,8 @@ func (s *AuthServer) SignIn() http.HandlerFunc {
 		var hashedSecret corev1.Secret
 
 		if err := s.kubernetesClient.Get(r.Context(), ctrlclient.ObjectKey{
-			Namespace: v1alpha1.DefaultNamespace,
 			Name:      ClusterUserAuthSecretName,
+			Namespace: s.namespace,
 		}, &hashedSecret); err != nil {
 			s.Log.Error(err, "Failed to query for the secret")
 			JSONError(s.Log, rw, "Please ensure that a password has been set.", http.StatusBadRequest)
