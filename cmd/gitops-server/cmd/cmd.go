@@ -23,7 +23,6 @@ import (
 	httpmiddleware "github.com/slok/go-http-metrics/middleware"
 	httpmiddlewarestd "github.com/slok/go-http-metrics/middleware/std"
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/fetcher"
@@ -46,6 +45,7 @@ const (
 	loginRequestRateLimit = 20
 	// Env var prefix that will be set as a feature flag automatically
 	featureFlagPrefix = "WEAVE_GITOPS_FEATURE"
+	defaultDevUser    = "wego-admin"
 )
 
 // Options contains all the options for the gitops-server command.
@@ -99,7 +99,7 @@ func NewCommand() *cobra.Command {
 	cmd.Flags().DurationVar(&options.OIDC.TokenDuration, "oidc-token-duration", time.Hour, "The duration of the ID token. It should be set in the format: number + time unit (s,m,h) e.g., 20m")
 
 	cmd.Flags().BoolVar(&options.DevMode, "dev-mode", false, "Enables development mode")
-	cmd.Flags().StringVar(&options.DevUser, "dev-user", v1alpha1.DefaultClaimsSubject, "Sets development User")
+	cmd.Flags().StringVar(&options.DevUser, "dev-user", defaultDevUser, "Sets development User")
 
 	cmd.Flags().BoolVar(&options.EnableMetrics, "enable-metrics", false, "Starts the metrics listener")
 	cmd.Flags().StringVar(&options.MetricsAddress, "metrics-address", ":2112", "If the metrics listener is enabled, bind to this address")
