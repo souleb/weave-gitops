@@ -68,6 +68,7 @@ require (
 	github.com/aws/aws-sdk-go v1.17.4 // indirect
 	github.com/benbjohnson/clock v1.3.0 // indirect
 	github.com/chai2010/gettext-go v0.0.0-20160711120539-c6fed771bfd5 // indirect
+	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e // indirect
 	github.com/emicklei/go-restful/v3 v3.8.0 // indirect
 	github.com/fluxcd/pkg/kustomize v0.5.2 // indirect
 	github.com/fluxcd/pkg/untar v0.1.0 // indirect
@@ -79,6 +80,7 @@ require (
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/iancoleman/strcase v0.1.2 // indirect
 	github.com/kr/pretty v0.3.0 // indirect
+	github.com/manifoldco/promptui v0.9.0 // indirect
 	github.com/matryer/is v1.4.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.0 // indirect

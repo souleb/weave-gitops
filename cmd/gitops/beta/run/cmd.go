@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/fluxcd/flux2/pkg/manifestgen/install"
+	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
@@ -196,6 +197,19 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 			}
 		} else {
 			log.Successf("Flux version %s is found", fluxVersion)
+		}
+
+		prompt := promptui.Prompt{
+			Label:     "Would you like to install the GitOps Dashboard",
+			IsConfirm: true,
+		}
+		_, err = prompt.Run()
+
+		if err == nil {
+			err = run.InstallDashboard(log, ctx, kubeClient)
+			if err == nil {
+				return fmt.Errorf("gitops dashboard installation failed: %w", err)
+			}
 		}
 
 		const fluxSystemNS = "flux-system"
