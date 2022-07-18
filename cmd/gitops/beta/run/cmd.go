@@ -206,8 +206,8 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 		_, err = prompt.Run()
 
 		if err == nil {
-			err = run.InstallDashboard(log, ctx, kubeClient)
-			if err == nil {
+			err = run.InstallDashboard(log, ctx, kubeClient, kubeConfigArgs)
+			if err != nil {
 				return fmt.Errorf("gitops dashboard installation failed: %w", err)
 			}
 		}
